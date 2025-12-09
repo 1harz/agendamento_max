@@ -62,6 +62,7 @@ Thumbs.db
 # Project specific
 backend/data/
 !backend/data/.gitkeep
+backend/data/appointments.txt
 *.log
 .env
 .env.*

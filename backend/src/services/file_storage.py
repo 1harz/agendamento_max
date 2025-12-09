@@ -15,14 +15,7 @@ class FileStorageService:
     def _ensure_file_exists(self):
         """Ensure the data file exists with valid initial structure."""
         if not os.path.exists(self.file_path):
-            initial_data = {
-                "appointments": [],
-                "metadata": {
-                    "last_updated": datetime.now().isoformat(),
-                    "version": "1.0",
-                    "total_appointments": 0
-                }
-            }
+            initial_data = self._get_empty_data_structure()
             with open(self.file_path, 'w', encoding='utf-8') as f:
                 json.dump(initial_data, f, indent=2, ensure_ascii=False)
 
@@ -32,30 +25,70 @@ class FileStorageService:
             timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
             backup_path = os.path.join(self.backup_dir, f"appointments_backup_{timestamp}.txt")
             shutil.copy2(self.file_path, backup_path)
+            print(f"Backup created at: {backup_path}")  # Debug line
 
     async def read_data(self) -> Dict[str, Any]:
         """Read all data from the storage file."""
         try:
             async with aiofiles.open(self.file_path, mode='r', encoding='utf-8') as f:
                 content = await f.read()
+                # Handle empty file
+                if not content.strip():
+                    return self._get_empty_data_structure()
                 return json.loads(content)
         except json.JSONDecodeError:
-            return {"appointments": [], "metadata": {}}
+            return self._get_empty_data_structure()
         except Exception as e:
             raise RuntimeError(f"Failed to read data file: {str(e)}")
+    
+    def _get_empty_data_structure(self) -> Dict[str, Any]:
+        """Returns the default empty data structure."""
+        return {
+            "appointments": [],
+            "metadata": {
+                "last_updated": datetime.now().isoformat(),
+                "version": "1.0",
+                "total_appointments": 0
+            }
+        }
 
-    async def write_data(self, data: Dict[str, Any]):
+    async def write_data(self, data: Dict[str, Any], create_backup=False):
         """Write data to the storage file safely."""
         try:
-            await self._create_backup()
+            # Only create backup if explicitly requested (not on every write)
+            if create_backup:
+                await self._create_backup()
             
             # Update metadata
             data["metadata"]["last_updated"] = datetime.now().isoformat()
             data["metadata"]["total_appointments"] = len(data.get("appointments", []))
             
-            async with aiofiles.open(self.file_path, mode='w', encoding='utf-8') as f:
-                await f.write(json.dumps(data, indent=2, ensure_ascii=False))
+            # Write to a temporary file first, then move to avoid corruption
+            temp_file_path = self.file_path + '.tmp'
+            json_data = json.dumps(data, indent=2, ensure_ascii=False)
+            
+            # Write to temporary file
+            async with aiofiles.open(temp_file_path, mode='w', encoding='utf-8') as f:
+                await f.write(json_data)
+            
+            # Verify the temporary file was written correctly
+            async with aiofiles.open(temp_file_path, mode='r', encoding='utf-8') as f:
+                content = await f.read()
+                if not content or len(content) != len(json_data):
+                    raise RuntimeError("Temporary file verification failed")
+            
+            # On Windows, we need to remove the target file first if it exists
+            if os.path.exists(self.file_path):
+                os.remove(self.file_path)
+            
+            # Move the temporary file to the target location
+            shutil.move(temp_file_path, self.file_path)
+            
         except Exception as e:
+            # Clean up temp file if it exists
+            temp_file_path = self.file_path + '.tmp'
+            if os.path.exists(temp_file_path):
+                os.remove(temp_file_path)
             raise RuntimeError(f"Failed to write data file: {str(e)}")
 
     async def get_appointments(self) -> List[Dict[str, Any]]:
@@ -77,7 +110,7 @@ class FileStorageService:
             appointments.append(appointment)
             
         data["appointments"] = appointments
-        await self.write_data(data)
+        await self.write_data(data, create_backup=False)  # Don't create backup on every save
         return appointment
 
     async def delete_appointment(self, appointment_id: str) -> bool:
@@ -91,5 +124,5 @@ class FileStorageService:
             return False
             
         data["appointments"] = filtered_appointments
-        await self.write_data(data)
+        await self.write_data(data, create_backup=False)  # Don't create backup on every delete
         return True

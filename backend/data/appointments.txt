@@ -1,8 +1,172 @@
 {
-  "appointments": [],
+  "appointments": [
+    {
+      "id": "f4cb1d54-5b2b-4a6b-8c43-e87aff52eef3",
+      "customer_name": "Bob Johnson",
+      "service_date": "2025-12-12T12:14:00",
+      "service_type": "Manutenção Preventiva",
+      "volatility_level": "high",
+      "observations": "Observação para o serviço 1",
+      "required_tools": [
+        "Bomba de vácuo",
+        "Chave de fenda"
+      ],
+      "status": "in_progress",
+      "created_at": "2025-12-06T19:30:00.108374",
+      "updated_at": "2025-12-06T20:47:00.108374",
+      "occurrences": []
+    },
+    {
+      "id": "3a798836-2c4f-4051-991d-3cb3f7058c19",
+      "customer_name": "Alice Smith",
+      "service_date": "2025-12-13T12:41:00",
+      "service_type": "Reparo de Vazamento",
+      "volatility_level": "low",
+      "observations": "Observação para o serviço 2",
+      "required_tools": [
+        "Maçarico",
+        "Detector de vazamento",
+        "Bomba de vácuo"
+      ],
+      "status": "finalized",
+      "created_at": "2025-12-08T19:30:00.108374",
+      "updated_at": "2025-12-08T21:11:00.108374",
+      "occurrences": []
+    },
+    {
+      "id": "8637d534-10ab-480d-a305-c43a91e075ac",
+      "customer_name": "Alice Smith",
+      "service_date": "2025-12-10T06:46:00",
+      "service_type": "Instalação de AC",
+      "volatility_level": "low",
+      "observations": "Observação para o serviço 3",
+      "required_tools": [
+        "Multímetro",
+        "Bomba de vácuo"
+      ],
+      "status": "pending",
+      "created_at": "2025-12-07T19:30:00.108374",
+      "updated_at": "2025-12-09T19:37:43.842214",
+      "occurrences": []
+    },
+    {
+      "id": "45dc5fad-ec04-4187-a728-dd0a35d88f48",
+      "customer_name": "Diana Prince",
+      "service_date": "2025-12-16T11:54:00",
+      "service_type": "Instalação de AC",
+      "volatility_level": "low",
+      "observations": "Observação para o serviço 4",
+      "required_tools": [
+        "Bomba de vácuo",
+        "Detector de vazamento",
+        "Chave de fenda"
+      ],
+      "status": "finalized",
+      "created_at": "2025-12-07T19:30:00.108374",
+      "updated_at": "2025-12-07T20:27:00.108374",
+      "occurrences": []
+    },
+    {
+      "id": "dbfab7b1-b9a9-4626-8c17-9813dc8c6388",
+      "customer_name": "Bob Johnson",
+      "service_date": "2025-12-11T09:19:00",
+      "service_type": "Reparo de Vazamento",
+      "volatility_level": "high",
+      "observations": "Observação para o serviço 5",
+      "required_tools": [
+        "Detector de vazamento",
+        "Multímetro",
+        "Maçarico"
+      ],
+      "status": "finalized",
+      "created_at": "2025-12-06T19:30:00.108374",
+      "updated_at": "2025-12-06T21:20:00.108374",
+      "occurrences": []
+    },
+    {
+      "id": "914108fc-e0f2-4085-b8b0-9f78e8261222",
+      "customer_name": "Diana Prince",
+      "service_date": "2025-12-14T10:50:00",
+      "service_type": "Manutenção Preventiva",
+      "volatility_level": "high",
+      "observations": "Observação para o serviço 6",
+      "required_tools": [
+        "Multímetro",
+        "Bomba de vácuo"
+      ],
+      "status": "pending",
+      "created_at": "2025-12-08T19:30:00.108374",
+      "updated_at": "2025-12-08T21:19:00.108374",
+      "occurrences": []
+    },
+    {
+      "id": "1ac1b611-8b05-42a5-bd62-d10ca2e836f5",
+      "customer_name": "Jack Taylor",
+      "service_date": "2025-12-16T07:45:00",
+      "service_type": "Limpeza de Dutos",
+      "volatility_level": "medium",
+      "observations": "Observação para o serviço 7",
+      "required_tools": [
+        "Maçarico"
+      ],
+      "status": "awaiting_payment",
+      "created_at": "2025-12-06T19:30:00.108374",
+      "updated_at": "2025-12-06T20:33:00.108374",
+      "occurrences": []
+    },
+    {
+      "id": "4e20a7b9-b56d-4755-b07d-65871b26c0dc",
+      "customer_name": "Diana Prince",
+      "service_date": "2025-12-12T04:32:00",
+      "service_type": "Instalação de AC",
+      "volatility_level": "medium",
+      "observations": "Observação para o serviço 8",
+      "required_tools": [
+        "Multímetro",
+        "Detector de vazamento",
+        "Maçarico"
+      ],
+      "status": "awaiting_payment",
+      "created_at": "2025-12-06T19:30:00.108374",
+      "updated_at": "2025-12-06T20:03:00.108374",
+      "occurrences": []
+    },
+    {
+      "id": "2436ff27-cac9-4ddd-83ed-973fb9a28bff",
+      "customer_name": "Frank White",
+      "service_date": "2025-12-12T08:06:00",
+      "service_type": "Carga de Gás",
+      "volatility_level": "medium",
+      "observations": "Observação para o serviço 9",
+      "required_tools": [
+        "Maçarico",
+        "Detector de vazamento"
+      ],
+      "status": "awaiting_payment",
+      "created_at": "2025-12-06T19:30:00.108374",
+      "updated_at": "2025-12-06T21:14:00.108374",
+      "occurrences": []
+    },
+    {
+      "id": "a047f3e5-1b91-4bea-aea4-c2316866bc85",
+      "customer_name": "Ivy King",
+      "service_date": "2025-12-12T11:46:00",
+      "service_type": "Manutenção Preventiva",
+      "volatility_level": "low",
+      "observations": "Observação para o serviço 10",
+      "required_tools": [
+        "Detector de vazamento",
+        "Maçarico"
+      ],
+      "status": "finalized",
+      "created_at": "2025-12-08T19:30:00.108374",
+      "updated_at": "2025-12-08T20:43:00.108374",
+      "occurrences": []
+    }
+  ],
   "metadata": {
-    "last_updated": "",
+    "last_updated": "2025-12-09T19:37:43.842806",
     "version": "1.0",
-    "total_appointments": 0
+    "total_appointments": 10
   }
 }

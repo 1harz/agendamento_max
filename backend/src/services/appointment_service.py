@@ -2,6 +2,8 @@ from typing import List, Optional
 from datetime import datetime
 import uuid
 import logging
+from enum import Enum # Import Enum for type checking
+
 from ..models.appointment import Appointment, CreateAppointmentRequest, UpdateAppointmentRequest, AppointmentStatus
 from ..models.occurrence import Occurrence, OccurrenceType, CreateOccurrenceRequest
 from ..services.file_storage import FileStorageService
@@ -55,25 +57,25 @@ class AppointmentService:
         if not update_data:
             return existing_appointment
 
-        appointment_dict = existing_appointment.dict()
+        # Get a dictionary representation suitable for JSON storage
+        # Use model_dump(mode='json') for Pydantic v2 for complete serialization, handling datetimes and enums
+        appointment_dict = existing_appointment.model_dump(mode='json')
         
-        # Convert UUID to string for storage
-        appointment_dict['id'] = str(appointment_dict['id'])
-        
-        # Update fields
+        # Update fields from request
         for key, value in update_data.items():
             if value is not None:
+                # Ensure datetime objects from request are also ISO formatted if updated
                 if isinstance(value, datetime):
                     appointment_dict[key] = value.isoformat()
+                elif isinstance(value, Enum): # Handle Enum updates from request
+                    appointment_dict[key] = value.value
                 else:
                     appointment_dict[key] = value
-
-        appointment_dict['updated_at'] = datetime.now().isoformat()
         
-        # Handle complex types for storage (Enum, UUID, etc are handled by Pydantic on read, but need strings for JSON)
-        # Note: In a real app with Pydantic v2, model_dump(mode='json') helps.
-        # Here we manually ensure serialization compatibility if needed, but dict() usually handles basic types.
-        # However, for saving back to JSON storage, we need to ensure everything is JSON serializable.
+        appointment_dict['updated_at'] = datetime.now().isoformat() # Always update 'updated_at'
+        # Ensure status enum is serialized as string if it was updated in the request (model_dump usually handles this, but explicit check for safety)
+        if 'status' in update_data and isinstance(appointment_dict.get('status'), Enum):
+            appointment_dict['status'] = appointment_dict['status'].value
         
         await self.storage.save_appointment(appointment_dict)
         return Appointment(**appointment_dict)
@@ -95,18 +97,11 @@ class AppointmentService:
         )
         
         appointment.occurrences.append(occurrence)
-        appointment.updated_at = datetime.now()
+        appointment.updated_at = datetime.now() # Update the actual object's timestamp
         
-        appointment_dict = appointment.dict()
-        appointment_dict['id'] = str(appointment.id)
+        # Get a dictionary representation suitable for JSON storage
+        appointment_dict = appointment.model_dump(mode='json') # This should handle all datetime and enum serialization
         
-        # Serialize occurrences
-        appointment_dict['occurrences'] = [occ.dict() for occ in appointment.occurrences]
-        # Ensure all UUIDs are strings
-        for occ in appointment_dict['occurrences']:
-            occ['id'] = str(occ['id'])
-            occ['appointment_id'] = str(occ['appointment_id'])
-
         await self.storage.save_appointment(appointment_dict)
         return appointment
 
@@ -117,9 +112,47 @@ class AppointmentService:
 
         appointment.status = AppointmentStatus.COMPLETED
         
-        occurrence_req = CreateOccurrenceRequest(
+        # First, mark as completed
+        completion_occurrence_req = CreateOccurrenceRequest(
             type=OccurrenceType.COMPLETION,
             description="Serviço marcado como concluído."
         )
+        await self.add_occurrence(appointment_id, completion_occurrence_req)
         
-        return await self.add_occurrence(appointment_id, occurrence_req)
+        # Then, change status to awaiting_payment
+        appointment.status = AppointmentStatus.AWAITING_PAYMENT
+        appointment.updated_at = datetime.now()
+        
+        # Get a dictionary representation suitable for JSON storage
+        appointment_dict = appointment.model_dump(mode='json')
+        
+        await self.storage.save_appointment(appointment_dict)
+        return appointment
+    
+    async def mark_as_paid(self, appointment_id: uuid.UUID) -> Optional[Appointment]:
+        """Mark an appointment as paid and change status to finalized."""
+        appointment = await self.get_appointment(appointment_id)
+        if not appointment:
+            return None
+            
+        if appointment.status != AppointmentStatus.AWAITING_PAYMENT:
+            raise ValueError("Appointment must be in 'awaiting_payment' status to be marked as paid.")
+        
+        # Add a payment occurrence
+        payment_occurrence = Occurrence(
+            id=uuid.uuid4(),
+            appointment_id=appointment_id,
+            timestamp=datetime.now(),
+            type=OccurrenceType.PAYMENT,
+            description="Serviço marcado como pago e finalizado."
+        )
+        
+        appointment.occurrences.append(payment_occurrence)
+        appointment.status = AppointmentStatus.FINALIZED
+        appointment.updated_at = datetime.now()
+        
+        # Get a dictionary representation suitable for JSON storage
+        appointment_dict = appointment.model_dump(mode='json')
+        
+        await self.storage.save_appointment(appointment_dict)
+        return appointment

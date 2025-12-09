@@ -20,7 +20,7 @@ class Config:
     
     # AI Configuration
     GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
-    GEMINI_MODEL = "gemini-pro"
+    GEMINI_MODEL = "gemini-2.5-flash"
     AI_MAX_TOKENS = 1000
     AI_TEMPERATURE = 0.7
     

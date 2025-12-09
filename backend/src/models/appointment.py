@@ -13,6 +13,8 @@ class AppointmentStatus(str, Enum):
     PENDING = "pending"
     IN_PROGRESS = "in_progress"
     COMPLETED = "completed"
+    AWAITING_PAYMENT = "awaiting_payment"
+    FINALIZED = "finalized"
 
 class Appointment(BaseModel):
     id: UUID4
@@ -26,6 +28,21 @@ class Appointment(BaseModel):
     created_at: datetime
     updated_at: datetime
     occurrences: List[Occurrence] = Field(default_factory=list)
+    
+    @validator('status', pre=True)
+    def validate_status(cls, v):
+        if isinstance(v, str):
+            try:
+                return AppointmentStatus(v)
+            except ValueError:
+                raise ValueError(f"Invalid status value: {v}")
+        return v
+    
+    class Config:
+        # Allow enum values to be converted from strings
+        use_enum_values = True
+        # For Pydantic v1 compatibility
+        validate_assignment = True
 
     @validator('required_tools', each_item=True)
     def validate_tool_length(cls, v):

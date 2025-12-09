@@ -103,6 +103,23 @@ async def complete_appointment(appointment_id: UUID):
         "message": "Appointment marked as completed"
     }
 
+@router.post("/appointments/{appointment_id}/paid", response_model=dict)
+async def mark_as_paid(appointment_id: UUID):
+    try:
+        appointment = await appointment_service.mark_as_paid(appointment_id)
+        if not appointment:
+            raise HTTPException(status_code=404, detail="Appointment not found")
+        
+        return {
+            "success": True,
+            "data": appointment,
+            "message": "Appointment marked as paid and finalized"
+        }
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @router.post("/appointments/{appointment_id}/occurrence", response_model=dict)
 async def create_occurrence(appointment_id: UUID, request: CreateOccurrenceRequest):
     appointment = await appointment_service.add_occurrence(appointment_id, request)

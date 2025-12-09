@@ -8,6 +8,7 @@ class OccurrenceType(str, Enum):
     RESCHEDULE = "reschedule"
     MODIFICATION = "modification"
     COMPLETION = "completion"
+    PAYMENT = "payment"
 
 class Occurrence(BaseModel):
     id: UUID4

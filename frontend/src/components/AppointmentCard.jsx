@@ -19,12 +19,26 @@ const AppointmentCard = ({ appointment, onEdit, onUpdate }) => {
     }
   };
 
+  const handlePaid = async () => {
+    if (window.confirm("Tem certeza que deseja marcar este serviço como pago?")) {
+      try {
+        await api.post(`/appointments/${appointment.id}/paid`);
+        if (onUpdate) onUpdate();
+      } catch (err) {
+        alert("Erro ao marcar serviço como pago.");
+        console.error(err);
+      }
+    }
+  };
+
   const getStatusColor = (status, serviceDate) => {
+    if (status === 'finalized') return 'status-completed';
+    if (status === 'awaiting_payment') return 'status-awaiting-payment';
     if (status === 'completed') return 'status-completed';
     if (status === 'in_progress') return 'status-in-progress';
     
     // Check if delayed
-    if (new Date(serviceDate) < new Date() && status !== 'completed') {
+    if (new Date(serviceDate) < new Date() && status !== 'completed' && status !== 'finalized') {
       return 'status-delayed';
     }
     
@@ -45,7 +59,9 @@ const AppointmentCard = ({ appointment, onEdit, onUpdate }) => {
     const map = {
       'pending': 'Pendente',
       'in_progress': 'Em Andamento',
-      'completed': 'Concluído'
+      'completed': 'Concluído',
+      'awaiting_payment': 'Aguardando Pagamento',
+      'finalized': 'Finalizado'
     };
     return map[status] || status;
   };
@@ -68,7 +84,7 @@ const AppointmentCard = ({ appointment, onEdit, onUpdate }) => {
       
       <div className="card-body">
         <div className="info-row">
-          <strong>Serviço:</strong> {appointment.service_type}
+          <strong>Serviço:</strong> <span data-full-text={appointment.service_type}>{appointment.service_type}</span>
         </div>
         
         <div className="info-row">
@@ -76,24 +92,29 @@ const AppointmentCard = ({ appointment, onEdit, onUpdate }) => {
         </div>
         
         <div className="info-row">
-          <strong>Flexibilidade:</strong> {translateVolatility(appointment.volatility_level)}
+          <strong>Flexibilidade:</strong> <span data-full-text={translateVolatility(appointment.volatility_level)}>{translateVolatility(appointment.volatility_level)}</span>
         </div>
         
         {appointment.required_tools && appointment.required_tools.length > 0 && (
           <div className="info-row">
-            <strong>Ferramentas:</strong> {appointment.required_tools.join(', ')}
+            <strong>Ferramentas:</strong> <span data-full-text={appointment.required_tools.join(', ')}>{appointment.required_tools.join(', ')}</span>
           </div>
         )}
         
         {appointment.observations && (
           <div className="info-row observations">
-            <strong>Obs:</strong> {appointment.observations}
+            <strong>Obs:</strong> <span data-full-text={appointment.observations}>{appointment.observations}</span>
           </div>
         )}
       </div>
       
       <div className="card-footer">
-        {appointment.status !== 'completed' && (
+        {appointment.status === 'awaiting_payment' && (
+          <button className="btn btn-primary" onClick={handlePaid}>
+            Pago
+          </button>
+        )}
+        {appointment.status !== 'completed' && appointment.status !== 'awaiting_payment' && appointment.status !== 'finalized' && (
           <button className="btn btn-success" onClick={handleComplete}>
             Concluir
           </button>

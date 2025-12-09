@@ -78,7 +78,7 @@ const AIAssistant = ({ onActionComplete }) => {
   return (
     <div className={`ai-assistant ${isOpen ? 'open' : ''}`}>
       <div className="ai-toggle" onClick={toggleOpen}>
-        {isOpen ? '✕' : '🤖'}
+        {isOpen ? '✕' : 'IA'}
       </div>
 
       {isOpen && (
