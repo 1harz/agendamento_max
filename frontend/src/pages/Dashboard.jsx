@@ -1,149 +1,121 @@
-import React, { useState, useEffect } from 'react'
-import AppointmentForm from '../components/AppointmentForm.jsx'
-import apiService from '../services/api.js'
+import React, { useState, useEffect } from 'react';
+import { api } from '../services/api';
+import AppointmentCard from '../components/AppointmentCard';
+import AppointmentForm from '../components/AppointmentForm';
+import AIAssistant from '../components/AIAssistant';
 
-function Dashboard() {
-  const [appointments, setAppointments] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [showForm, setShowForm] = useState(false)
-  const [editingAppointment, setEditingAppointment] = useState(null)
+const Dashboard = () => {
+  const [appointments, setAppointments] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [showForm, setShowForm] = useState(false);
+  const [editingAppointment, setEditingAppointment] = useState(null);
+
+  const fetchAppointments = async () => {
+    try {
+      setLoading(true);
+      const response = await api.get('/appointments');
+      if (response.success) {
+        setAppointments(sortAppointments(response.data));
+      }
+    } catch (err) {
+      setError('Erro ao carregar agendamentos.');
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    // Fetch appointments from API
-    const fetchAppointments = async () => {
-      try {
-        const response = await apiService.getAppointments()
-        
-        if (response.success) {
-          setAppointments(response.data)
-        }
-      } catch (error) {
-        console.error('Error fetching appointments:', error)
-      } finally {
-        setLoading(false)
-      }
-    }
+    fetchAppointments();
+  }, []);
 
-    fetchAppointments()
-  }, [])
-
-  const handleCreateAppointment = () => {
-    setEditingAppointment(null)
-    setShowForm(true)
-  }
-
-  const handleEditAppointment = (appointment) => {
-    setEditingAppointment(appointment)
-    setShowForm(true)
-  }
-
-  const handleCloseForm = () => {
-    setShowForm(false)
-    setEditingAppointment(null)
-  }
-
-  const handleSaveAppointment = async (appointmentData) => {
-    try {
-      if (editingAppointment) {
-        await apiService.updateAppointment(editingAppointment.id, appointmentData)
-      } else {
-        await apiService.createAppointment(appointmentData)
-      }
+  const sortAppointments = (items) => {
+    return items.sort((a, b) => {
+      const now = new Date();
+      const dateA = new Date(a.service_date);
+      const dateB = new Date(b.service_date);
       
-      // Refresh appointments list
-      const response = await apiService.getAppointments()
-      if (response.success) {
-        setAppointments(response.data)
-      }
+      // 1. Delayed appointments first
+      const isDelayedA = dateA < now && a.status !== 'completed';
+      const isDelayedB = dateB < now && b.status !== 'completed';
       
-      handleCloseForm()
-    } catch (error) {
-      console.error('Error saving appointment:', error)
-      alert('Erro ao salvar agendamento. Tente novamente.')
-    }
-  }
-
-  const handleCompleteAppointment = async (appointmentId) => {
-    try {
-      await apiService.completeAppointment(appointmentId)
+      if (isDelayedA && !isDelayedB) return -1;
+      if (!isDelayedA && isDelayedB) return 1;
+      if (isDelayedA && isDelayedB) return dateA - dateB; // Most delayed first? Or oldest first? Oldest first implies most delayed.
       
-      // Refresh appointments list
-      const response = await apiService.getAppointments()
-      if (response.success) {
-        setAppointments(response.data)
-      }
-    } catch (error) {
-      console.error('Error completing appointment:', error)
-      alert('Erro ao concluir agendamento. Tente novamente.')
-    }
-  }
+      // 2. Chronological order for the rest
+      return dateA - dateB;
+    });
+  };
 
-  if (loading) {
-    return <div className="loading">Carregando agendamentos...</div>
-  }
+  const handleEdit = (appointment) => {
+    setEditingAppointment(appointment);
+    setShowForm(true);
+  };
+
+  const handleSuccess = () => {
+    setShowForm(false);
+    setEditingAppointment(null);
+    fetchAppointments();
+  };
+
+  const handleCancel = () => {
+    setShowForm(false);
+    setEditingAppointment(null);
+  };
 
   return (
     <div className="dashboard">
       <div className="dashboard-header">
-        <h2>Agendamentos</h2>
-        <button className="btn btn-primary" onClick={handleCreateAppointment}>
-          Novo Agendamento
+        <h2>Painel de Agendamentos</h2>
+        <button 
+          className="btn btn-primary" 
+          onClick={() => {
+            setEditingAppointment(null);
+            setShowForm(true);
+          }}
+        >
+          + Novo Agendamento
         </button>
       </div>
-      
+
       {showForm && (
         <div className="modal-overlay">
           <div className="modal-content">
-            <AppointmentForm
-              onSave={handleSaveAppointment}
-              onCancel={handleCloseForm}
-              initialData={editingAppointment}
-            />
+            <div className="modal-header">
+              <h3>{editingAppointment ? 'Editar Agendamento' : 'Novo Agendamento'}</h3>
+              <button className="btn-close" onClick={handleCancel}>&times;</button>
+            </div>
+            <AppointmentForm onSuccess={handleSuccess} initialData={editingAppointment} />
           </div>
         </div>
       )}
-      
-      <div className="appointments-container">
-        {appointments.length === 0 ? (
-          <div className="empty-state">
-            <p>Nenhum agendamento encontrado</p>
-            <p>Clique em "Novo Agendamento" para criar seu primeiro agendamento</p>
-          </div>
-        ) : (
-          <div className="appointments-list">
-            {appointments.map(appointment => (
-              <div key={appointment.id} className="appointment-card">
-                <div className="appointment-header">
-                  <h3>{appointment.customer_name}</h3>
-                  <span className={`status-badge status-${appointment.status}`}>
-                    {appointment.status === 'pending' ? 'Pendente' :
-                     appointment.status === 'in_progress' ? 'Em Andamento' : 'Concluído'}
-                  </span>
-                </div>
-                
-                <div className="appointment-details">
-                  <p><strong>Serviço:</strong> {appointment.service_type}</p>
-                  <p><strong>Data:</strong> {new Date(appointment.service_date).toLocaleString('pt-BR')}</p>
-                  <p><strong>Volatilidade:</strong> {
-                    appointment.volatility_level === 'low' ? 'Baixa' :
-                    appointment.volatility_level === 'medium' ? 'Média' : 'Alta'
-                  }</p>
-                  {appointment.observations && (
-                    <p><strong>Observações:</strong> {appointment.observations}</p>
-                  )}
-                </div>
-                
-                <div className="appointment-actions">
-                  <button className="btn btn-secondary" onClick={() => handleEditAppointment(appointment)}>Editar</button>
-                  <button className="btn btn-success" onClick={() => handleCompleteAppointment(appointment.id)}>Concluir</button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
-  )
-}
 
-export default Dashboard
+      {loading ? (
+        <div className="loading">Carregando...</div>
+      ) : error ? (
+        <div className="error">{error}</div>
+      ) : (
+        <div className="appointments-grid">
+          {appointments.length === 0 ? (
+            <p className="no-data">Nenhum agendamento encontrado.</p>
+          ) : (
+            appointments.map(app => (
+              <AppointmentCard
+                key={app.id}
+                appointment={app}
+                onEdit={handleEdit}
+                onUpdate={fetchAppointments}
+              />
+            ))
+          )}
+        </div>
+      )}
+      
+      <AIAssistant onActionComplete={fetchAppointments} />
+    </div>
+  );
+};
+
+export default Dashboard;

@@ -1,115 +1,66 @@
-// API service for communicating with backend
+const API_BASE_URL = 'http://localhost:8000/api/v1';
 
-const API_BASE_URL = '/api';
+export const config = {
+  apiBaseUrl: API_BASE_URL,
+  timeout: 10000,
+  retryAttempts: 3
+};
 
 class ApiService {
-  constructor() {
-    this.baseURL = API_BASE_URL;
-  }
-
-  // Generic request method
   async request(endpoint, options = {}) {
-    const url = `${this.baseURL}${endpoint}`;
-    
+    const url = `${API_BASE_URL}${endpoint}`;
+    const defaultHeaders = {
+      'Content-Type': 'application/json',
+    };
+
     const config = {
+      ...options,
       headers: {
-        'Content-Type': 'application/json',
-        ...options.headers
+        ...defaultHeaders,
+        ...options.headers,
       },
-      ...options
     };
 
     try {
       const response = await fetch(url, config);
       
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error?.message || `HTTP error! status: ${response.status}`);
+        throw new Error(`API Error: ${response.status} ${response.statusText}`);
       }
-      
+
+      // Handle 204 No Content
+      if (response.status === 204) {
+        return null;
+      }
+
       return await response.json();
     } catch (error) {
-      console.error('API request failed:', error);
+      console.error('API Request Failed:', error);
       throw error;
     }
   }
 
-  // GET request
-  async get(endpoint) {
-    return this.request(endpoint, {
-      method: 'GET'
-    });
+  get(endpoint) {
+    return this.request(endpoint, { method: 'GET' });
   }
 
-  // POST request
-  async post(endpoint, data) {
+  post(endpoint, data) {
     return this.request(endpoint, {
       method: 'POST',
-      body: JSON.stringify(data)
+      body: JSON.stringify(data),
     });
   }
 
-  // PUT request
-  async put(endpoint, data) {
+  put(endpoint, data) {
     return this.request(endpoint, {
       method: 'PUT',
-      body: JSON.stringify(data)
+      body: JSON.stringify(data),
     });
   }
 
-  // DELETE request
-  async delete(endpoint) {
-    return this.request(endpoint, {
-      method: 'DELETE'
-    });
-  }
-
-  // Appointment endpoints
-  async getAppointments() {
-    return this.get('/appointments');
-  }
-
-  async getAppointment(id) {
-    return this.get(`/appointments/${id}`);
-  }
-
-  async createAppointment(appointmentData) {
-    return this.post('/appointments', appointmentData);
-  }
-
-  async updateAppointment(id, appointmentData) {
-    return this.put(`/appointments/${id}`, appointmentData);
-  }
-
-  async deleteAppointment(id) {
-    return this.delete(`/appointments/${id}`);
-  }
-
-  async completeAppointment(id) {
-    return this.post(`/appointments/${id}/complete`);
-  }
-
-  async createOccurrence(appointmentId, occurrenceData) {
-    return this.post(`/appointments/${appointmentId}/occurrence`, occurrenceData);
-  }
-
-  // AI Assistant endpoints
-  async sendChatMessage(message, context = null) {
-    return this.post('/ai/chat', {
-      message,
-      context
-    });
-  }
-
-  async getRecommendations(excludedAppointmentId = null) {
-    const params = excludedAppointmentId 
-      ? `?excluded_appointment_id=${excludedAppointmentId}` 
-      : '';
-    return this.get(`/ai/recommendations${params}`);
+  delete(endpoint) {
+    return this.request(endpoint, { method: 'DELETE' });
   }
 }
 
-// Create singleton instance
-const apiService = new ApiService();
-
-export default apiService;
+export const api = new ApiService();

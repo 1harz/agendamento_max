@@ -1,57 +1,40 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from dotenv import load_dotenv
-import os
+from .config import Config
+from .api.routes import router as api_router
+from .api.middleware import error_handling_middleware
 
-# Load environment variables
-load_dotenv()
+# Initialize configuration
+Config.ensure_directories()
 
-# Import middleware
-from .api.middleware import (
-    LoggingMiddleware,
-    ErrorHandlingMiddleware,
-    RequestValidationMiddleware,
-    setup_logging
-)
-
-# Initialize logging
-setup_logging()
-
-# Create FastAPI application
 app = FastAPI(
     title="Maxfrio Appointment Scheduling API",
     description="API for managing appointments with AI-powered scheduling assistance",
     version="1.0.0"
 )
 
-# Add custom middleware
-app.add_middleware(RequestValidationMiddleware)
-app.add_middleware(ErrorHandlingMiddleware)
-app.add_middleware(LoggingMiddleware)
+# Register Middleware
+app.middleware("http")(error_handling_middleware)
 
-# Configure CORS
+# CORS Middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # Frontend URL
+    allow_origins=Config.CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Import and include API routes
-from .api.routes import router as api_router
-app.include_router(api_router, prefix="/api")
-
 @app.get("/")
 async def root():
-    """Root endpoint to verify API is running"""
-    return {"message": "Maxfrio Appointment Scheduling API is running"}
+    return {
+        "message": "Maxfrio Appointment Scheduling API",
+        "status": "online",
+        "version": "1.0.0"
+    }
 
-@app.get("/health")
-async def health_check():
-    """Health check endpoint"""
-    return {"status": "healthy"}
+app.include_router(api_router, prefix=Config.API_PREFIX)
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run("src.main:app", host=Config.API_HOST, port=Config.API_PORT, reload=True)
