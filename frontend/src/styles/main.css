@@ -1,0 +1,327 @@
+/* Global styles for Maxfrio Appointment Scheduling System */
+
+/* CSS Reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Root variables */
+:root {
+  --primary-color: #0066cc;
+  --primary-hover: #0052a3;
+  --secondary-color: #6c757d;
+  --success-color: #28a745;
+  --warning-color: #ffc107;
+  --danger-color: #dc3545;
+  --light-color: #f8f9fa;
+  --dark-color: #343a40;
+  --gray-color: #6c757d;
+  
+  --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  --font-size-base: 16px;
+  --line-height-base: 1.5;
+  
+  --border-radius: 6px;
+  --box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  --transition: all 0.3s ease;
+}
+
+/* Base styles */
+body {
+  font-family: var(--font-family);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-base);
+  color: var(--dark-color);
+  background-color: var(--light-color);
+}
+
+/* App layout */
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-header {
+  background-color: var(--primary-color);
+  color: white;
+  padding: 1rem 2rem;
+  box-shadow: var(--box-shadow);
+}
+
+.app-header h1 {
+  font-size: 1.8rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.app-header p {
+  font-size: 1rem;
+  opacity: 0.9;
+}
+
+.app-main {
+  flex: 1;
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* Dashboard styles */
+.dashboard {
+  width: 100%;
+}
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.dashboard-header h2 {
+  font-size: 1.5rem;
+  color: var(--dark-color);
+}
+
+/* Button styles */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 500;
+  text-decoration: none;
+  border: none;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  transition: var(--transition);
+  min-height: 44px; /* Accessibility for touch targets */
+}
+
+.btn:focus {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+.btn-primary {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: var(--primary-hover);
+}
+
+.btn-secondary {
+  background-color: var(--secondary-color);
+  color: white;
+}
+
+.btn-secondary:hover {
+  background-color: #5a6268;
+}
+
+.btn-success {
+  background-color: var(--success-color);
+  color: white;
+}
+
+.btn-success:hover {
+  background-color: #218838;
+}
+
+.btn-danger {
+  background-color: var(--danger-color);
+  color: white;
+}
+
+.btn-danger:hover {
+  background-color: #c82333;
+}
+
+/* Loading state */
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 4rem 0;
+  font-size: 1.2rem;
+  color: var(--gray-color);
+}
+
+/* Empty state */
+.empty-state {
+  text-align: center;
+  padding: 4rem 2rem;
+  background-color: white;
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+}
+
+.empty-state p {
+  margin-bottom: 1rem;
+  color: var(--gray-color);
+}
+
+.empty-state p:first-child {
+  font-size: 1.2rem;
+  font-weight: 500;
+}
+
+/* Appointments container */
+.appointments-container {
+  width: 100%;
+}
+
+.appointments-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 1.5rem;
+}
+
+/* Appointment card */
+.appointment-card {
+  background-color: white;
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  padding: 1.5rem;
+  transition: var(--transition);
+  border-left: 4px solid var(--gray-color);
+}
+
+.appointment-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.appointment-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.appointment-header h3 {
+  font-size: 1.2rem;
+  color: var(--dark-color);
+  margin-bottom: 0;
+  flex: 1;
+}
+
+/* Status badges */
+.status-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  border-radius: 12px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.status-pending {
+  background-color: var(--gray-color);
+  color: white;
+}
+
+.status-in_progress {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.status-completed {
+  background-color: var(--success-color);
+  color: white;
+}
+
+/* Appointment details */
+.appointment-details {
+  margin-bottom: 1.5rem;
+}
+
+.appointment-details p {
+  margin-bottom: 0.5rem;
+  line-height: 1.4;
+}
+
+.appointment-details strong {
+  color: var(--dark-color);
+  font-weight: 600;
+}
+
+/* Appointment actions */
+.appointment-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .app-header {
+    padding: 1rem;
+  }
+  
+  .app-main {
+    padding: 1rem;
+  }
+  
+  .dashboard-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .appointments-list {
+    grid-template-columns: 1fr;
+  }
+  
+  .appointment-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .appointment-actions {
+    flex-direction: column;
+  }
+  
+  .btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* High contrast mode for accessibility */
+@media (prefers-contrast: high) {
+  :root {
+    --primary-color: #0000ff;
+    --success-color: #00ff00;
+    --danger-color: #ff0000;
+    --light-color: #ffffff;
+    --dark-color: #000000;
+  }
+  
+  .appointment-card {
+    border: 2px solid var(--dark-color);
+  }
+}
+
+/* Reduced motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    animation: none !important;
+  }
+  
+  .appointment-card:hover {
+    transform: none;
+  }
+}

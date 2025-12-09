@@ -1,0 +1,595 @@
+openapi: 3.0.3
+info:
+  title: Maxfrio Appointment Scheduling API
+  description: API for managing appointments with AI-powered scheduling assistance
+  version: 1.0.0
+  contact:
+    name: Maxfrio Development Team
+    email: dev@maxfrio.com
+
+servers:
+  - url: http://localhost:8000
+    description: Development server
+
+paths:
+  /appointments:
+    get:
+      summary: Get all appointments
+      description: Retrieve all appointments sorted by priority (delayed first, then by proximity and volatility)
+      tags:
+        - Appointments
+      responses:
+        '200':
+          description: List of appointments retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Appointment'
+                  total:
+                    type: integer
+                    example: 25
+
+    post:
+      summary: Create new appointment
+      description: Create a new appointment with the provided details
+      tags:
+        - Appointments
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAppointmentRequest'
+      responses:
+        '201':
+          description: Appointment created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Appointment'
+                  message:
+                    type: string
+                    example: "Appointment created successfully"
+        '400':
+          description: Invalid input data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /appointments/{appointment_id}:
+    get:
+      summary: Get appointment by ID
+      description: Retrieve a specific appointment by its unique identifier
+      tags:
+        - Appointments
+      parameters:
+        - name: appointment_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Appointment retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Appointment'
+        '404':
+          description: Appointment not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    put:
+      summary: Update appointment
+      description: Update an existing appointment with new details
+      tags:
+        - Appointments
+      parameters:
+        - name: appointment_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateAppointmentRequest'
+      responses:
+        '200':
+          description: Appointment updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Appointment'
+                  message:
+                    type: string
+                    example: "Appointment updated successfully"
+        '400':
+          description: Invalid input data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Appointment not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    delete:
+      summary: Delete appointment
+      description: Delete an appointment by its unique identifier
+      tags:
+        - Appointments
+      parameters:
+        - name: appointment_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Appointment deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Appointment deleted successfully"
+        '404':
+          description: Appointment not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /appointments/{appointment_id}/complete:
+    post:
+      summary: Mark appointment as completed
+      description: Change the status of an appointment to completed
+      tags:
+        - Appointments
+      parameters:
+        - name: appointment_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Appointment marked as completed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Appointment'
+                  message:
+                    type: string
+                    example: "Appointment marked as completed"
+        '404':
+          description: Appointment not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /appointments/{appointment_id}/occurrence:
+    post:
+      summary: Create occurrence for appointment
+      description: Create a new occurrence record for an appointment modification
+      tags:
+        - Appointments
+      parameters:
+        - name: appointment_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateOccurrenceRequest'
+      responses:
+        '201':
+          description: Occurrence created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Occurrence'
+                  message:
+                    type: string
+                    example: "Occurrence created successfully"
+        '400':
+          description: Invalid input data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Appointment not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /ai/chat:
+    post:
+      summary: AI assistant interaction
+      description: Interact with AI assistant for appointment management and recommendations
+      tags:
+        - AI Assistant
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AIChatRequest'
+      responses:
+        '200':
+          description: AI response generated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/AIChatResponse'
+        '400':
+          description: Invalid input or AI service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /ai/recommendations:
+    get:
+      summary: Get AI recommendations
+      description: Get AI-powered appointment recommendations for filling schedule gaps
+      tags:
+        - AI Assistant
+      parameters:
+        - name: excluded_appointment_id
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+          description: Appointment ID to exclude from recommendations
+      responses:
+        '200':
+          description: Recommendations generated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      recommendations:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Appointment'
+                      reasoning:
+                        type: string
+                        example: "Based on customer volatility and time proximity"
+        '500':
+          description: AI service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  schemas:
+    Appointment:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        customer_name:
+          type: string
+          minLength: 2
+          maxLength: 100
+          example: "João Silva"
+        service_date:
+          type: string
+          format: date-time
+          example: "2025-12-10T14:30:00"
+        service_type:
+          type: string
+          minLength: 2
+          maxLength: 50
+          example: "Manutenção de Ar Condicionado"
+        volatility_level:
+          type: string
+          enum: [low, medium, high]
+          example: "medium"
+        observations:
+          type: string
+          maxLength: 500
+          example: "Cliente solicita verificação do filtro"
+        required_tools:
+          type: array
+          items:
+            type: string
+            maxLength: 50
+          maxItems: 10
+          example: ["Chave de fenda", "Medidor de pressão"]
+        status:
+          type: string
+          enum: [pending, in_progress, completed]
+          example: "pending"
+        created_at:
+          type: string
+          format: date-time
+          example: "2025-12-09T10:00:00"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2025-12-09T10:00:00"
+        occurrences:
+          type: array
+          items:
+            $ref: '#/components/schemas/Occurrence'
+
+    CreateAppointmentRequest:
+      type: object
+      required:
+        - customer_name
+        - service_date
+        - service_type
+        - volatility_level
+      properties:
+        customer_name:
+          type: string
+          minLength: 2
+          maxLength: 100
+          example: "João Silva"
+        service_date:
+          type: string
+          format: date-time
+          example: "2025-12-10T14:30:00"
+        service_type:
+          type: string
+          minLength: 2
+          maxLength: 50
+          example: "Manutenção de Ar Condicionado"
+        volatility_level:
+          type: string
+          enum: [low, medium, high]
+          example: "medium"
+        observations:
+          type: string
+          maxLength: 500
+          example: "Cliente solicita verificação do filtro"
+        required_tools:
+          type: array
+          items:
+            type: string
+            maxLength: 50
+          maxItems: 10
+          example: ["Chave de fenda", "Medidor de pressão"]
+
+    UpdateAppointmentRequest:
+      type: object
+      properties:
+        customer_name:
+          type: string
+          minLength: 2
+          maxLength: 100
+          example: "João Silva"
+        service_date:
+          type: string
+          format: date-time
+          example: "2025-12-10T14:30:00"
+        service_type:
+          type: string
+          minLength: 2
+          maxLength: 50
+          example: "Manutenção de Ar Condicionado"
+        volatility_level:
+          type: string
+          enum: [low, medium, high]
+          example: "medium"
+        observations:
+          type: string
+          maxLength: 500
+          example: "Cliente solicita verificação do filtro"
+        required_tools:
+          type: array
+          items:
+            type: string
+            maxLength: 50
+          maxItems: 10
+          example: ["Chave de fenda", "Medidor de pressão"]
+        status:
+          type: string
+          enum: [pending, in_progress, completed]
+          example: "pending"
+
+    Occurrence:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "456e7890-e89b-12d3-a456-426614174111"
+        appointment_id:
+          type: string
+          format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        timestamp:
+          type: string
+          format: date-time
+          example: "2025-12-09T15:30:00"
+        type:
+          type: string
+          enum: [status_change, reschedule, modification, completion]
+          example: "modification"
+        description:
+          type: string
+          minLength: 5
+          maxLength: 200
+          example: "Updated service type and added new tools"
+        previous_data:
+          type: object
+          example: {"service_type": "Installation", "required_tools": []}
+        new_data:
+          type: object
+          example: {"service_type": "Maintenance", "required_tools": ["Wrench"]}
+
+    CreateOccurrenceRequest:
+      type: object
+      required:
+        - type
+        - description
+      properties:
+        type:
+          type: string
+          enum: [status_change, reschedule, modification, completion]
+          example: "modification"
+        description:
+          type: string
+          minLength: 5
+          maxLength: 200
+          example: "Updated service type and added new tools"
+
+    AIChatRequest:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          minLength: 1
+          maxLength: 1000
+          example: "O cliente A cancelou, quer que o serviço seja feito depois de amanhã. Qual serviço posso fazer agora?"
+        context:
+          type: object
+          properties:
+            current_appointment_id:
+              type: string
+              format: uuid
+              example: "123e4567-e89b-12d3-a456-426614174000"
+
+    AIChatResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "Entendido! Vou reagendar o serviço do cliente A para depois de amanhã e sugerir uma alternativa."
+        action:
+          type: object
+          properties:
+            type:
+              type: string
+              enum: [reschedule, recommend, create, modify]
+              example: "reschedule"
+            appointment_id:
+              type: string
+              format: uuid
+              example: "123e4567-e89b-12d3-a456-426614174000"
+            new_date:
+              type: string
+              format: date-time
+              example: "2025-12-11T14:30:00"
+            recommendation:
+              $ref: '#/components/schemas/Appointment'
+        requires_confirmation:
+          type: boolean
+          example: true
+
+    Error:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: "VALIDATION_ERROR"
+            message:
+              type: string
+              example: "Invalid input data"
+            details:
+              type: array
+              items:
+                type: string
+              example: ["customer_name is required", "service_date must be in the future"]
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+security:
+  - BearerAuth: []

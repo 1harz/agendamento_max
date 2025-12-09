@@ -31,7 +31,11 @@
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-[Gates determined based on constitution file]
+- User Interface Design: All interfaces must be designed for users with average age of 50 years
+- PowerShell Standards: All automation must follow Windows PowerShell standards
+- No Testing: No automated tests shall be implemented
+- Accessibility: All interfaces must comply with accessibility standards for users 50+
+- Simplicity: All functionality must be implemented with maximum simplicity
 
 ## Project Structure
 
